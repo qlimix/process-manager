@@ -2,15 +2,16 @@
 
 namespace Qlimix\ProcessManager;
 
-use Qlimix\Process\Exception\ProcessException;
 use Qlimix\Process\Output\OutputInterface;
+use Qlimix\Process\ProcessControlInterface;
 use Qlimix\Process\ProcessInterface;
-use Qlimix\Process\Runtime\ControlInterface;
+use Qlimix\Process\ProcessManagerInterface;
+use Qlimix\Process\Runtime\RuntimeControlInterface;
 
-final class ProcessManager
+final class ProcessManager implements ProcessManagerInterface
 {
     /** @var int[] */
-    private $processes = [];
+    private $runningProcesses = 0;
 
     /** @var int */
     private $maxProcesses = 5;
@@ -18,8 +19,11 @@ final class ProcessManager
     /** @var ProcessInterface */
     private $process;
 
-    /** @var ControlInterface */
-    private $control;
+    /** @var ProcessControlInterface */
+    private $processControl;
+
+    /** @var RuntimeControlInterface */
+    private $runtimeControl;
 
     /** @var OutputInterface */
     private $output;
@@ -27,18 +31,21 @@ final class ProcessManager
     /** @var bool */
     private $stop;
 
-    /** @var bool */
-    private $stoppedProcesses = false;
-
     /**
      * @param ProcessInterface $process
-     * @param ControlInterface $control
+     * @param ProcessControlInterface $processControl
+     * @param RuntimeControlInterface $runtimeControl
      * @param OutputInterface $output
      */
-    public function __construct(ProcessInterface $process, ControlInterface $control, OutputInterface $output)
-    {
+    public function __construct(
+        ProcessInterface $process,
+        ProcessControlInterface $processControl,
+        RuntimeControlInterface $runtimeControl,
+        OutputInterface $output
+    ) {
         $this->process = $process;
-        $this->control = $control;
+        $this->processControl = $processControl;
+        $this->runtimeControl = $runtimeControl;
         $this->output = $output;
     }
 
@@ -47,22 +54,25 @@ final class ProcessManager
         while(true) {
             try {
                 if ($this->quit()) {
-                    $this->stopProcesses();
+                    $this->processControl->stopProcesses();
                 }
 
                 if (!$this->processLimit() && !$this->quit()) {
-                    $this->fork();
+                    $this->processControl->startProcess($this->process);
+                    $this->runningProcesses++;
                 }
 
-                $this->reap();
+                if ($this->runningProcesses > 0 && $this->processControl->status() !== null) {
+                    $this->runningProcesses--;
+                }
             } catch (\Throwable $exception) {
                 $this->output->write($exception->getMessage());
                 $this->stop = true;
             }
 
-            $this->control->tick();
+            $this->runtimeControl->tick();
 
-            if ($this->quit() && count($this->processes) === 0) {
+            if ($this->runningProcesses === 0 && $this->quit()) {
                 break;
             }
 
@@ -70,92 +80,13 @@ final class ProcessManager
         }
     }
 
-    /**
-     * @throws \Exception
-     */
-    private function fork(): void
-    {
-        $this->output->write('Forking');
-        $pid = pcntl_fork();
-        if ($pid === -1) {
-            throw new \Exception('Could not start new process');
-        }
-
-        if ($pid > 0) {
-            $this->processes[] = $pid;
-            return;
-        }
-
-        try {
-            $this->runProcess();
-        } catch (\Throwable $exception) {
-            exit(1);
-        }
-
-        exit(0);
-    }
-
-    /**
-     * @throws \Exception
-     */
-    private function reap(): void
-    {
-        $status = -1;
-        $this->output->write('Reaping');
-        $pid = pcntl_wait($status, WNOHANG);
-
-        if ($pid === 0) {
-            $this->output->write('No child returned');
-            return;
-        }
-
-        if ($pid === -1) {
-            throw new \Exception('Failed waiting for a returning process');
-        }
-
-        if (pcntl_wifexited($status)) {
-            $this->output->write('Found returned process');
-            foreach ($this->processes as $index => $process) {
-                if ($process === $pid) {
-                    unset($this->processes[$index]);
-                    return;
-                }
-            }
-            throw new \Exception('Couldn\'t find pid in process list');
-        }
-
-        throw new \Exception('Process returned with '.pcntl_wexitstatus($status));
-    }
-
     private function processLimit(): bool
     {
-        return $this->maxProcesses === count($this->processes);
-    }
-
-    private function stopProcesses(): void
-    {
-        if ($this->stoppedProcesses) {
-            return;
-        }
-        $this->output->write('Stop processes');
-        foreach ($this->processes as $process) {
-            posix_kill($process, SIGKILL);
-        }
-
-        $this->stoppedProcesses = true;
-    }
-
-    /**
-     * @throws ProcessException
-     */
-    private function runProcess(): void
-    {
-        $this->output->write('Run process');
-        $this->process->run($this->control, $this->output);
+        return $this->maxProcesses === $this->runningProcesses;
     }
 
     private function quit(): bool
     {
-        return $this->stop || $this->control->abort();
+        return $this->stop || $this->runtimeControl->abort();
     }
 }

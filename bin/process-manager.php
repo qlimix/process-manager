@@ -5,12 +5,12 @@ require __DIR__.'/../vendor/autoload.php';
 
 final class TestProcess implements \Qlimix\Process\ProcessInterface
 {
-    public function run(\Qlimix\Process\Runtime\ControlInterface $control, \Qlimix\Process\Output\OutputInterface $output): void
+    public function run(\Qlimix\Process\Runtime\RuntimeControlInterface $control, \Qlimix\Process\Output\OutputInterface $output): void
     {
         $i = 0;
         $output->write('PID: '.getmypid());
         while (true) {
-            if ($i > 15) {
+            if ($i > 5) {
                 break;
             }
             $control->tick();
@@ -25,14 +25,20 @@ final class TestProcess implements \Qlimix\Process\ProcessInterface
         }
     }
 }
-$control = new \Qlimix\Process\Runtime\PcntlControl();
+
+$control = new \Qlimix\Process\Runtime\PcntlRuntimeControl();
 $control->init();
 
-$processManager = new \Qlimix\ProcessManager\ProcessManager(
-    new TestProcess(),
+$processControl = new \Qlimix\ProcessManager\ProcessControl(
     $control,
     new \Qlimix\Process\Output\StdOutput()
 );
 
+$processManager = new \Qlimix\ProcessManager\ProcessManager(
+    new TestProcess(),
+    $processControl,
+    $control,
+    new \Qlimix\Process\Output\StdOutput()
+);
 
 $processManager->run();
