@@ -1,12 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace Qlimix\ProcessManager;
+namespace Qlimix\Process;
 
 use Qlimix\Process\Exception\ProcessException;
 use Qlimix\Process\Output\OutputInterface;
-use Qlimix\Process\ProcessControlInterface;
-use Qlimix\Process\ProcessInterface;
-use Qlimix\Process\ProcessManagerInterface;
 use Qlimix\Process\Runtime\RuntimeControlInterface;
 
 final class MultipleProcessesManager implements ProcessManagerInterface
