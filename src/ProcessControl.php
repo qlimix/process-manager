@@ -19,6 +19,7 @@ final class ProcessControl implements ProcessControlInterface
     /** @var OutputInterface */
     private $output;
 
+    /** @var int */
     private $nextPid = 0;
 
     /**
