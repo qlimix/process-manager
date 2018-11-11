@@ -10,12 +10,6 @@ use Qlimix\Process\Runtime\RuntimeControlInterface;
 
 final class ProcessManager implements ProcessManagerInterface
 {
-    /** @var int[] */
-    private $runningProcesses = 0;
-
-    /** @var int */
-    private $maxProcesses = 5;
-
     /** @var ProcessInterface */
     private $process;
 
@@ -28,6 +22,12 @@ final class ProcessManager implements ProcessManagerInterface
     /** @var OutputInterface */
     private $output;
 
+    /** @var int */
+    private $maxProcesses;
+
+    /** @var int[] */
+    private $runningProcesses = 0;
+
     /** @var bool */
     private $stop;
 
@@ -36,17 +36,20 @@ final class ProcessManager implements ProcessManagerInterface
      * @param ProcessControlInterface $processControl
      * @param RuntimeControlInterface $runtimeControl
      * @param OutputInterface $output
+     * @param int $maxProcesses
      */
     public function __construct(
         ProcessInterface $process,
         ProcessControlInterface $processControl,
         RuntimeControlInterface $runtimeControl,
-        OutputInterface $output
+        OutputInterface $output,
+        int $maxProcesses
     ) {
         $this->process = $process;
         $this->processControl = $processControl;
         $this->runtimeControl = $runtimeControl;
         $this->output = $output;
+        $this->maxProcesses = $maxProcesses;
     }
 
     public function run(): void
@@ -76,7 +79,7 @@ final class ProcessManager implements ProcessManagerInterface
                 break;
             }
 
-            sleep(1);
+            usleep(50000);
         }
     }
 
