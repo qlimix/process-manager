@@ -2,16 +2,17 @@
 
 namespace Qlimix\ProcessManager;
 
+use Qlimix\Process\Exception\ProcessException;
 use Qlimix\Process\Output\OutputInterface;
 use Qlimix\Process\ProcessControlInterface;
 use Qlimix\Process\ProcessInterface;
 use Qlimix\Process\ProcessManagerInterface;
 use Qlimix\Process\Runtime\RuntimeControlInterface;
 
-final class MultiplyProcessManager implements ProcessManagerInterface
+final class MultipleProcessesManager implements ProcessManagerInterface
 {
-    /** @var ProcessInterface */
-    private $process;
+    /** @var ProcessInterface[] */
+    private $processes;
 
     /** @var ProcessControlInterface */
     private $processControl;
@@ -22,51 +23,46 @@ final class MultiplyProcessManager implements ProcessManagerInterface
     /** @var OutputInterface */
     private $output;
 
-    /** @var int */
-    private $maxProcesses;
-
     /** @var int[] */
-    private $runningProcesses = 0;
+    private $pids;
 
     /** @var bool */
     private $stop;
 
     /**
-     * @param ProcessInterface $process
+     * @param ProcessInterface[] $processes
      * @param ProcessControlInterface $processControl
      * @param RuntimeControlInterface $runtimeControl
      * @param OutputInterface $output
-     * @param int $maxProcesses
      */
     public function __construct(
-        ProcessInterface $process,
+        array $processes,
         ProcessControlInterface $processControl,
         RuntimeControlInterface $runtimeControl,
-        OutputInterface $output,
-        int $maxProcesses
+        OutputInterface $output
     ) {
-        $this->process = $process;
+        $this->processes = $processes;
         $this->processControl = $processControl;
         $this->runtimeControl = $runtimeControl;
         $this->output = $output;
-        $this->maxProcesses = $maxProcesses;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function run(): void
     {
+        $this->pids = $this->processControl->startProcesses($this->processes);
+
         while(true) {
             try {
                 if ($this->quit()) {
                     $this->processControl->stopProcesses();
                 }
 
-                if (!$this->processLimit() && !$this->quit()) {
-                    $this->processControl->startProcess($this->process);
-                    $this->runningProcesses++;
-                }
-
-                if ($this->runningProcesses > 0 && $this->processControl->status() !== null) {
-                    $this->runningProcesses--;
+                $pid = $this->processControl->status();
+                if ($pid !== null) {
+                    $this->restartProcess($pid);
                 }
             } catch (\Throwable $exception) {
                 $this->output->write($exception->getMessage());
@@ -75,7 +71,7 @@ final class MultiplyProcessManager implements ProcessManagerInterface
 
             $this->runtimeControl->tick();
 
-            if ($this->runningProcesses === 0 && $this->quit()) {
+            if (count($this->pids) === 0 && $this->quit()) {
                 break;
             }
 
@@ -83,9 +79,25 @@ final class MultiplyProcessManager implements ProcessManagerInterface
         }
     }
 
-    private function processLimit(): bool
+    /**
+     * @param int $stoppedPid
+     *
+     * @throws ProcessException
+     */
+    private function restartProcess(int $stoppedPid): void
     {
-        return $this->maxProcesses === $this->runningProcesses;
+        foreach ($this->pids as $pid => $index) {
+            if ($pid === $stoppedPid) {
+                if (!$this->quit()) {
+                    $newPid = $this->processControl->startProcess($this->processes[$index]);
+                    $this->pids[$newPid] = $index;
+                }
+                unset($this->pids[$stoppedPid]);
+                return;
+            }
+        }
+
+        throw new ProcessException('Invalid pid to restart');
     }
 
     private function quit(): bool
