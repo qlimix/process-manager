@@ -55,15 +55,7 @@ final class MultipleProcessesManager implements ProcessManagerInterface
                     $this->processControl->stopProcesses();
                 }
 
-                $pid = $this->processControl->status();
-                if ($pid !== null) {
-                    $index = $this->removePid($pid->getPid());
-                    if ($pid->success()) {
-                        $this->restartProcess($index);
-                    } else {
-                        $this->stop = true;
-                    }
-                }
+                $this->manageProcess();
             } catch (Throwable $exception) {
                 $this->output->write($exception->getMessage());
                 $this->stop = true;
@@ -76,6 +68,22 @@ final class MultipleProcessesManager implements ProcessManagerInterface
             }
 
             usleep(50000);
+        }
+    }
+
+    /**
+     * @throws ProcessException
+     */
+    private function manageProcess(): void
+    {
+        $pid = $this->processControl->status();
+        if ($pid !== null) {
+            $index = $this->removePid($pid->getPid());
+            if ($pid->success()) {
+                $this->restartProcess($index);
+            } else {
+                $this->stop = true;
+            }
         }
     }
 
@@ -101,6 +109,10 @@ final class MultipleProcessesManager implements ProcessManagerInterface
      */
     private function restartProcess(int $index): void
     {
+        if ($this->quit()) {
+            return;
+        }
+
         if (!array_key_exists($index, $this->pids[])) {
             throw new ProcessException('Invalid process index');
         }
