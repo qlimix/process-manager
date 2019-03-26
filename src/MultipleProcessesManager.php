@@ -5,6 +5,7 @@ namespace Qlimix\Process;
 use Qlimix\Process\Exception\ProcessException;
 use Qlimix\Process\Output\OutputInterface;
 use Qlimix\Process\Runtime\RuntimeControlInterface;
+use Throwable;
 
 final class MultipleProcessesManager implements ProcessManagerInterface
 {
@@ -28,9 +29,6 @@ final class MultipleProcessesManager implements ProcessManagerInterface
 
     /**
      * @param ProcessInterface[] $processes
-     * @param ProcessControlInterface $processControl
-     * @param RuntimeControlInterface $runtimeControl
-     * @param OutputInterface $output
      */
     public function __construct(
         array $processes,
@@ -59,9 +57,14 @@ final class MultipleProcessesManager implements ProcessManagerInterface
 
                 $pid = $this->processControl->status();
                 if ($pid !== null) {
-                    $this->restartProcess($pid);
+                    $index = $this->removePid($pid->getPid());
+                    if ($pid->success()) {
+                        $this->restartProcess($index);
+                    } else {
+                        $this->stop = true;
+                    }
                 }
-            } catch (\Throwable $exception) {
+            } catch (Throwable $exception) {
                 $this->output->write($exception->getMessage());
                 $this->stop = true;
             }
@@ -77,24 +80,33 @@ final class MultipleProcessesManager implements ProcessManagerInterface
     }
 
     /**
-     * @param int $stoppedPid
+     * returns the index of the process that exited
      *
      * @throws ProcessException
      */
-    private function restartProcess(int $stoppedPid): void
+    private function removePid(int $stoppedPid): int
     {
         foreach ($this->pids as $pid => $index) {
             if ($pid === $stoppedPid) {
-                if (!$this->quit()) {
-                    $newPid = $this->processControl->startProcess($this->processes[$index]);
-                    $this->pids[$newPid] = $index;
-                }
                 unset($this->pids[$stoppedPid]);
-                return;
+                return $index;
             }
         }
 
         throw new ProcessException('Invalid pid to restart');
+    }
+
+    /**
+     * @throws ProcessException
+     */
+    private function restartProcess(int $index): void
+    {
+        if (!array_key_exists($index, $this->pids[])) {
+            throw new ProcessException('Invalid process index');
+        }
+
+        $newPid = $this->processControl->startProcess($this->processes[$index]);
+        $this->pids[$newPid] = $index;
     }
 
     private function quit(): bool

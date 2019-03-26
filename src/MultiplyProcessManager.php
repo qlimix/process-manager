@@ -4,6 +4,7 @@ namespace Qlimix\Process;
 
 use Qlimix\Process\Output\OutputInterface;
 use Qlimix\Process\Runtime\RuntimeControlInterface;
+use Throwable;
 
 final class MultiplyProcessManager implements ProcessManagerInterface
 {
@@ -28,13 +29,6 @@ final class MultiplyProcessManager implements ProcessManagerInterface
     /** @var bool */
     private $stop;
 
-    /**
-     * @param ProcessInterface $process
-     * @param ProcessControlInterface $processControl
-     * @param RuntimeControlInterface $runtimeControl
-     * @param OutputInterface $output
-     * @param int $maxProcesses
-     */
     public function __construct(
         ProcessInterface $process,
         ProcessControlInterface $processControl,
@@ -62,10 +56,14 @@ final class MultiplyProcessManager implements ProcessManagerInterface
                     $this->runningProcesses++;
                 }
 
-                if ($this->runningProcesses > 0 && $this->processControl->status() !== null) {
+                $exitedProcess = $this->processControl->status();
+                if ($this->runningProcesses > 0 && $exitedProcess !== null) {
                     $this->runningProcesses--;
+                    if (!$exitedProcess->success()) {
+                        $this->stop = true;
+                    }
                 }
-            } catch (\Throwable $exception) {
+            } catch (Throwable $exception) {
                 $this->output->write($exception->getMessage());
                 $this->stop = true;
             }
