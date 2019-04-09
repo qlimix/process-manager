@@ -14,7 +14,13 @@
         }
     },
     "require": {
-        "qlimix/process": "dev-master"
+        "qlimix/process": "dev-master",
+        "qlimix/time": "dev-master"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Qlimix\\Tests\\Process\\": "tests/"
+        }
     },
     "suggest": {
     },
@@ -24,9 +30,24 @@
     "repositories": [
         {
             "type": "vcs",
+            "url": "git@bitbucket.org:qlimix/code-standard.git"
+        },
+        {
+            "type": "vcs",
+            "url": "git@bitbucket.org:qlimix/codesniffer-standard.git"
+        },
+        {
+            "type": "vcs",
             "url": "git@bitbucket.org:qlimix/process.git"
+        },
+        {
+            "type": "vcs",
+            "url": "git@bitbucket.org:qlimix/time.git"
         }
     ],
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "require-dev": {
+        "qlimix/code-standard": "dev-master"
+    }
 }
