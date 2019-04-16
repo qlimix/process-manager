@@ -5,16 +5,16 @@ namespace Qlimix\Tests\Process;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Qlimix\Process\Exception\ProcessException;
-use Qlimix\Process\Multiple\MultipleProcessRegistryInterface;
 use Qlimix\Process\MultipleProcessManager;
 use Qlimix\Process\ProcessControlInterface;
+use Qlimix\Process\ProcessInterface;
 use Qlimix\Process\Result\ExitedProcess;
 use Qlimix\Process\Runtime\RuntimeControlInterface;
 
 final class MultipleProcessManagerTest extends TestCase
 {
-    /** @var MockObject*/
-    private $multipleProcessManager;
+    /** @var MockObject[]*/
+    private $processes;
 
     /** @var MockObject*/
     private $processControl;
@@ -27,12 +27,17 @@ final class MultipleProcessManagerTest extends TestCase
 
     public function setUp(): void
     {
-        $this->multipleProcessManager = $this->createMock(MultipleProcessRegistryInterface::class);
         $this->processControl = $this->createMock(ProcessControlInterface::class);
         $this->runtimeControl = $this->createMock(RuntimeControlInterface::class);
 
+        $this->processes = [
+            $this->createMock(ProcessInterface::class),
+            $this->createMock(ProcessInterface::class),
+            $this->createMock(ProcessInterface::class),
+        ];
+
         $this->processManager = new MultipleProcessManager(
-            $this->multipleProcessManager,
+            $this->processes,
             $this->processControl,
             $this->runtimeControl
         );
@@ -43,8 +48,8 @@ final class MultipleProcessManagerTest extends TestCase
      */
     public function shouldInitialize(): void
     {
-        $this->multipleProcessManager->expects($this->once())
-            ->method('initialize');
+        $this->processControl->expects($this->exactly(3))
+            ->method('startProcess');
 
         $this->processManager->initialize();
     }
@@ -54,8 +59,8 @@ final class MultipleProcessManagerTest extends TestCase
      */
     public function shouldThrowOnInitializeException(): void
     {
-        $this->multipleProcessManager->expects($this->once())
-            ->method('initialize')
+        $this->processControl->expects($this->once())
+            ->method('startProcess')
             ->willThrowException(new ProcessException());
 
         $this->expectException(ProcessException::class);
@@ -70,13 +75,10 @@ final class MultipleProcessManagerTest extends TestCase
     {
         $this->processControl->expects($this->once())
             ->method('status')
-            ->willReturn(new ExitedProcess(1, true));
+            ->willReturn(new ExitedProcess($this->createMock(ProcessInterface::class), true));
 
-        $this->multipleProcessManager->expects($this->once())
-            ->method('removePid');
-
-        $this->multipleProcessManager->expects($this->once())
-            ->method('restartProcess');
+        $this->processControl->expects($this->once())
+            ->method('startProcess');
 
         $this->processManager->maintain();
     }
@@ -88,10 +90,7 @@ final class MultipleProcessManagerTest extends TestCase
     {
         $this->processControl->expects($this->once())
             ->method('status')
-            ->willReturn(new ExitedProcess(1, false));
-
-        $this->multipleProcessManager->expects($this->once())
-            ->method('removePid');
+            ->willReturn(new ExitedProcess($this->createMock(ProcessInterface::class), false));
 
         $this->runtimeControl->expects($this->once())
             ->method('quit');
@@ -116,8 +115,8 @@ final class MultipleProcessManagerTest extends TestCase
      */
     public function shouldStop(): void
     {
-        $this->multipleProcessManager->expects($this->once())
-            ->method('quit');
+        $this->processControl->expects($this->once())
+            ->method('stopProcesses');
 
         $this->processManager->stop();
     }
@@ -127,8 +126,8 @@ final class MultipleProcessManagerTest extends TestCase
      */
     public function shouldStopOnException(): void
     {
-        $this->multipleProcessManager->expects($this->once())
-            ->method('quit')
+        $this->processControl->expects($this->once())
+            ->method('stopProcesses')
             ->willThrowException(New ProcessException());
 
         $this->processManager->stop();

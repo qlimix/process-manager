@@ -4,11 +4,10 @@ namespace Qlimix\Tests\Process\Multiply;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Qlimix\Process\Exception\ProcessException;
-use Qlimix\Process\Multiply\MultiplyProcessRegistry;
+use Qlimix\Process\Multiply\Spawn;
 use Qlimix\Process\ProcessControlInterface;
 use Qlimix\Process\ProcessInterface;
-use Qlimix\Process\Result\ExitedProcess;
+use Qlimix\Process\Registry\RegistryInterface;
 
 final class MultiplyProcessRegistryTest extends TestCase
 {
@@ -18,17 +17,22 @@ final class MultiplyProcessRegistryTest extends TestCase
     /** @var MockObject */
     private $processControl;
 
-    /** @var MultiplyProcessRegistry */
+    /** @var MockObject */
+    private $registry;
+
+    /** @var Spawn */
     private $multiplyProcessRegistry;
 
     public function setUp(): void
     {
         $this->process = $this->createMock(ProcessInterface::class);
         $this->processControl = $this->createMock(ProcessControlInterface::class);
+        $this->registry = $this->createMock(RegistryInterface::class);
 
-        $this->multiplyProcessRegistry = new MultiplyProcessRegistry(
+        $this->multiplyProcessRegistry = new Spawn(
             $this->process,
             $this->processControl,
+            $this->registry,
             3
         );
     }
@@ -54,68 +58,13 @@ final class MultiplyProcessRegistryTest extends TestCase
         $this->processControl->expects($this->exactly(3))
             ->method('startProcess');
 
-        $this->multiplyProcessRegistry->spawn();
-        $this->multiplyProcessRegistry->spawn();
-        $this->multiplyProcessRegistry->spawn();
-        $this->multiplyProcessRegistry->spawn();
-    }
-
-    /**
-     * @test
-     */
-    public function shouldDespawn(): void
-    {
-        $this->processControl->expects($this->exactly(4))
-            ->method('startProcess');
+        $this->registry->expects($this->exactly(4))
+            ->method('count')
+            ->willReturnOnConsecutiveCalls(0, 1, 2, 3);
 
         $this->multiplyProcessRegistry->spawn();
         $this->multiplyProcessRegistry->spawn();
         $this->multiplyProcessRegistry->spawn();
-
-        $this->multiplyProcessRegistry->despawned();
-
         $this->multiplyProcessRegistry->spawn();
-    }
-
-    /**
-     * @test
-     */
-    public function shouldQuit(): void
-    {
-        $this->multiplyProcessRegistry->spawn();
-        $this->multiplyProcessRegistry->spawn();
-        $this->multiplyProcessRegistry->spawn();
-
-        $this->processControl->expects($this->once())
-            ->method('stopProcesses');
-
-        $this->processControl->expects($this->exactly(4))
-            ->method('status')
-            ->willReturnOnConsecutiveCalls(
-                new ExitedProcess(0, true),
-                new ExitedProcess(1, true),
-                null,
-                new ExitedProcess(2, true)
-            );
-
-        $this->multiplyProcessRegistry->quit();
-    }
-
-    /**
-     * @test
-     */
-    public function shouldThrowOnQuitStopProcessesException(): void
-    {
-        $this->multiplyProcessRegistry->spawn();
-        $this->multiplyProcessRegistry->spawn();
-        $this->multiplyProcessRegistry->spawn();
-
-        $this->processControl->expects($this->once())
-            ->method('stopProcesses')
-            ->willThrowException(new ProcessException());
-
-        $this->expectException(ProcessException::class);
-
-        $this->multiplyProcessRegistry->quit();
     }
 }

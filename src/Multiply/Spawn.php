@@ -4,8 +4,9 @@ namespace Qlimix\Process\Multiply;
 
 use Qlimix\Process\ProcessControlInterface;
 use Qlimix\Process\ProcessInterface;
+use Qlimix\Process\Registry\RegistryInterface;
 
-final class MultiplyProcessRegistry implements MultiplyProcessRegistryInterface
+final class Spawn implements SpawnInterface
 {
     /** @var ProcessInterface */
     private $process;
@@ -13,19 +14,21 @@ final class MultiplyProcessRegistry implements MultiplyProcessRegistryInterface
     /** @var ProcessControlInterface */
     private $processControl;
 
-    /** @var int */
-    private $maxProcesses;
+    /** @var RegistryInterface */
+    private $registry;
 
     /** @var int */
-    private $runningProcesses = 0;
+    private $maxProcesses;
 
     public function __construct(
         ProcessInterface $process,
         ProcessControlInterface $processControl,
+        RegistryInterface $registry,
         int $maxProcesses
     ) {
         $this->process = $process;
         $this->processControl = $processControl;
+        $this->registry = $registry;
         $this->maxProcesses = $maxProcesses;
     }
 
@@ -34,36 +37,10 @@ final class MultiplyProcessRegistry implements MultiplyProcessRegistryInterface
      */
     public function spawn(): void
     {
-        if ($this->maxProcesses === $this->runningProcesses) {
+        if ($this->maxProcesses === $this->registry->count()) {
             return;
         }
 
         $this->processControl->startProcess($this->process);
-        $this->runningProcesses++;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function despawned(): void
-    {
-        $this->runningProcesses--;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function quit(): void
-    {
-        $this->processControl->stopProcesses();
-
-        do {
-            $status = $this->processControl->status();
-            if ($status !== null) {
-                continue;
-            }
-
-            $this->despawned();
-        } while ($this->runningProcesses > 0);
     }
 }

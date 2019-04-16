@@ -2,29 +2,29 @@
 
 namespace Qlimix\Process;
 
-use Qlimix\Process\Multiply\MultiplyProcessRegistryInterface;
+use Qlimix\Process\Multiply\SpawnInterface;
 use Qlimix\Process\Runtime\RuntimeControlInterface;
 use Throwable;
 
 final class MultiplyProcessManager implements ProcessManagerInterface
 {
-    /** @var MultiplyProcessRegistryInterface */
-    private $multiplyProcessManager;
-
     /** @var ProcessControlInterface */
     private $processControl;
 
     /** @var RuntimeControlInterface */
     private $runtimeControl;
 
+    /** @var SpawnInterface */
+    private $spawn;
+
     public function __construct(
-        MultiplyProcessRegistryInterface $multiplyProcessManager,
         ProcessControlInterface $processControl,
-        RuntimeControlInterface $runtimeControl
+        RuntimeControlInterface $runtimeControl,
+        SpawnInterface $spawn
     ) {
-        $this->multiplyProcessManager = $multiplyProcessManager;
         $this->processControl = $processControl;
         $this->runtimeControl = $runtimeControl;
+        $this->spawn = $spawn;
     }
 
     /**
@@ -32,7 +32,7 @@ final class MultiplyProcessManager implements ProcessManagerInterface
      */
     public function initialize(): void
     {
-        $this->multiplyProcessManager->spawn();
+        $this->spawn->spawn();
     }
 
     /**
@@ -45,13 +45,11 @@ final class MultiplyProcessManager implements ProcessManagerInterface
             return;
         }
 
-        $this->multiplyProcessManager->despawned();
-
-        if (!$exitedProcess->success()) {
+        if ($exitedProcess->isSuccess()) {
+            $this->spawn->spawn();
+        } else {
             $this->runtimeControl->quit();
         }
-
-        $this->multiplyProcessManager->spawn();
     }
 
     /**
@@ -60,7 +58,7 @@ final class MultiplyProcessManager implements ProcessManagerInterface
     public function stop(): void
     {
         try {
-            $this->multiplyProcessManager->quit();
+            $this->processControl->stopProcesses();
         } catch (Throwable $exception) {
         }
     }

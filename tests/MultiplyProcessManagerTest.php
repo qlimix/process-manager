@@ -5,36 +5,37 @@ namespace Qlimix\Tests\Process;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Qlimix\Process\Exception\ProcessException;
-use Qlimix\Process\Multiply\MultiplyProcessRegistryInterface;
+use Qlimix\Process\Multiply\SpawnInterface;
 use Qlimix\Process\MultiplyProcessManager;
 use Qlimix\Process\ProcessControlInterface;
+use Qlimix\Process\ProcessInterface;
 use Qlimix\Process\Result\ExitedProcess;
 use Qlimix\Process\Runtime\RuntimeControlInterface;
 
 final class MultiplyProcessManagerTest extends TestCase
 {
     /** @var MockObject */
-    private $multiplyProcessManager;
-
-    /** @var MockObject */
     private $processControl;
 
     /** @var MockObject */
     private $runtimeControl;
+
+    /** @var MockObject */
+    private $spawn;
 
     /** @var MultiplyProcessManager */
     private $processManager;
 
     public function setUp(): void
     {
-        $this->multiplyProcessManager = $this->createMock(MultiplyProcessRegistryInterface::class);
         $this->processControl = $this->createMock(ProcessControlInterface::class);
         $this->runtimeControl = $this->createMock(RuntimeControlInterface::class);
+        $this->spawn = $this->createMock(SpawnInterface::class);
 
         $this->processManager = new MultiplyProcessManager(
-            $this->multiplyProcessManager,
             $this->processControl,
-            $this->runtimeControl
+            $this->runtimeControl,
+            $this->spawn
         );
     }
 
@@ -43,7 +44,7 @@ final class MultiplyProcessManagerTest extends TestCase
      */
     public function shouldInitialize(): void
     {
-        $this->multiplyProcessManager->expects($this->once())
+        $this->spawn->expects($this->once())
             ->method('spawn');
 
         $this->processManager->initialize();
@@ -54,7 +55,7 @@ final class MultiplyProcessManagerTest extends TestCase
      */
     public function shouldThrowOnInitializeException(): void
     {
-        $this->multiplyProcessManager->expects($this->once())
+        $this->spawn->expects($this->once())
             ->method('spawn')
             ->willThrowException(new ProcessException());
 
@@ -70,12 +71,9 @@ final class MultiplyProcessManagerTest extends TestCase
     {
         $this->processControl->expects($this->once())
             ->method('status')
-            ->willReturn(new ExitedProcess(1, true));
+            ->willReturn(new ExitedProcess($this->createMock(ProcessInterface::class), true));
 
-        $this->multiplyProcessManager->expects($this->once())
-            ->method('despawned');
-
-        $this->multiplyProcessManager->expects($this->once())
+        $this->spawn->expects($this->once())
             ->method('spawn');
 
         $this->processManager->maintain();
@@ -88,10 +86,7 @@ final class MultiplyProcessManagerTest extends TestCase
     {
         $this->processControl->expects($this->once())
             ->method('status')
-            ->willReturn(new ExitedProcess(1, false));
-
-        $this->multiplyProcessManager->expects($this->once())
-            ->method('despawned');
+            ->willReturn(new ExitedProcess($this->createMock(ProcessInterface::class), false));
 
         $this->runtimeControl->expects($this->once())
             ->method('quit');
@@ -116,8 +111,8 @@ final class MultiplyProcessManagerTest extends TestCase
      */
     public function shouldStop(): void
     {
-        $this->multiplyProcessManager->expects($this->once())
-            ->method('quit');
+        $this->processControl->expects($this->once())
+            ->method('stopProcesses');
 
         $this->processManager->stop();
     }
@@ -127,8 +122,8 @@ final class MultiplyProcessManagerTest extends TestCase
      */
     public function shouldStopOnException(): void
     {
-        $this->multiplyProcessManager->expects($this->once())
-            ->method('quit')
+        $this->processControl->expects($this->once())
+            ->method('stopProcesses')
             ->willThrowException(New ProcessException());
 
         $this->processManager->stop();

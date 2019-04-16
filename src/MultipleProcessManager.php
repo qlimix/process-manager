@@ -2,14 +2,13 @@
 
 namespace Qlimix\Process;
 
-use Qlimix\Process\Multiple\MultipleProcessRegistryInterface;
 use Qlimix\Process\Runtime\RuntimeControlInterface;
 use Throwable;
 
 final class MultipleProcessManager implements ProcessManagerInterface
 {
-    /** @var MultipleProcessRegistryInterface */
-    private $multipleProcessManager;
+    /** @var ProcessInterface[] */
+    private $processes;
 
     /** @var ProcessControlInterface */
     private $processControl;
@@ -17,12 +16,15 @@ final class MultipleProcessManager implements ProcessManagerInterface
     /** @var RuntimeControlInterface */
     private $runtimeControl;
 
+    /**
+     * @param ProcessInterface[] $processes
+     */
     public function __construct(
-        MultipleProcessRegistryInterface $multipleProcessManager,
+        array $processes,
         ProcessControlInterface $processControl,
         RuntimeControlInterface $runtimeControl
     ) {
-        $this->multipleProcessManager = $multipleProcessManager;
+        $this->processes = $processes;
         $this->processControl = $processControl;
         $this->runtimeControl = $runtimeControl;
     }
@@ -32,7 +34,9 @@ final class MultipleProcessManager implements ProcessManagerInterface
      */
     public function initialize(): void
     {
-        $this->multipleProcessManager->initialize();
+        foreach ($this->processes as $process) {
+            $this->processControl->startProcess($process);
+        }
     }
 
     /**
@@ -40,14 +44,13 @@ final class MultipleProcessManager implements ProcessManagerInterface
      */
     public function maintain(): void
     {
-        $pid = $this->processControl->status();
-        if ($pid === null) {
+        $exit = $this->processControl->status();
+        if ($exit === null) {
             return;
         }
 
-        $index = $this->multipleProcessManager->removePid($pid->getPid());
-        if ($pid->success()) {
-            $this->multipleProcessManager->restartProcess($index);
+        if ($exit->isSuccess()) {
+            $this->processControl->startProcess($exit->getProcess());
         } else {
             $this->runtimeControl->quit();
         }
@@ -59,7 +62,7 @@ final class MultipleProcessManager implements ProcessManagerInterface
     public function stop(): void
     {
         try {
-            $this->multipleProcessManager->quit();
+            $this->processControl->stopProcesses();
         } catch (Throwable $exception) {
         }
     }

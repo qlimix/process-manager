@@ -4,14 +4,10 @@ namespace Qlimix\Process\Multiply;
 
 use Qlimix\Process\Exception\ProcessException;
 
-interface MultiplyProcessRegistryInterface
+interface SpawnInterface
 {
     /**
      * @throws ProcessException
      */
     public function spawn(): void;
-
-    public function despawned(): void;
-
-    public function quit(): void;
 }
