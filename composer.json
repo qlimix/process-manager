@@ -1,7 +1,14 @@
 {
     "name": "qlimix/process-manager",
-    "type": "package",
-    "license": "LGPL-3.0-only",
+    "type": "library",
+    "description": "Process manager",
+    "license": "MIT",
+    "keywords": [
+        "process",
+        "manager",
+        "multiple",
+        "multiply"
+    ],
     "authors": [
         {
             "name": "frank",
@@ -14,40 +21,18 @@
         }
     },
     "require": {
-        "qlimix/process": "dev-master",
-        "qlimix/time": "dev-master"
+        "qlimix/process": "^1.0",
+        "qlimix/time": "^1.0"
     },
     "autoload-dev": {
         "psr-4": {
             "Qlimix\\Tests\\Process\\": "tests/"
         }
     },
-    "suggest": {
-    },
     "config": {
         "sort-packages": true
     },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "git@bitbucket.org:qlimix/code-standard.git"
-        },
-        {
-            "type": "vcs",
-            "url": "git@bitbucket.org:qlimix/codesniffer-standard.git"
-        },
-        {
-            "type": "vcs",
-            "url": "git@bitbucket.org:qlimix/process.git"
-        },
-        {
-            "type": "vcs",
-            "url": "git@bitbucket.org:qlimix/time.git"
-        }
-    ],
-    "minimum-stability": "dev",
-    "prefer-stable": true,
     "require-dev": {
-        "qlimix/code-standard": "dev-master"
+        "qlimix/code-standard": "^1.0"
     }
 }

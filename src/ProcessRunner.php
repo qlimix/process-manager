@@ -58,7 +58,7 @@ final class ProcessRunner implements ProcessRunnerInterface
                 break;
             }
 
-            $this->timeLapse->lapse(50000);
+            $this->timeLapse->lapse();
         }
     }
 }
