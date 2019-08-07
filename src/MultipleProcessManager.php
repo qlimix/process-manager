@@ -58,6 +58,7 @@ final class MultipleProcessManager implements ProcessManagerInterface
 
     /**
      * @inheritDoc
+     * @SuppressWarnings(PHPMD.EmptyCatchBlock)
      */
     public function stop(): void
     {

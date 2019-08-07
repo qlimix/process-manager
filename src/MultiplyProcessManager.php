@@ -54,6 +54,7 @@ final class MultiplyProcessManager implements ProcessManagerInterface
 
     /**
      * @inheritDoc
+     * @SuppressWarnings(PHPMD.EmptyCatchBlock)
      */
     public function stop(): void
     {
