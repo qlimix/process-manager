@@ -2,59 +2,52 @@
 
 namespace Qlimix\Process;
 
-use Qlimix\Process\Exception\ProcessRunnerException;
-use Qlimix\Process\Output\OutputInterface;
+use Qlimix\Process\Manager\ManagerInterface;
+use Qlimix\Process\Runner\Exception\RunnerException;
+use Qlimix\Process\Runner\RunnerInterface;
+use Qlimix\Process\Runtime\Reason;
 use Qlimix\Process\Runtime\RuntimeControlInterface;
 use Qlimix\Time\TimeLapseInterface;
 use Throwable;
 
-final class ProcessRunner implements ProcessRunnerInterface
+final class ProcessRunner implements RunnerInterface
 {
-    /** @var ProcessManagerInterface */
-    private $processManager;
+    private ManagerInterface $manager;
 
-    /** @var RuntimeControlInterface */
-    private $runtimeControl;
+    private RuntimeControlInterface $runtimeControl;
 
-    /** @var TimeLapseInterface */
-    private $timeLapse;
-
-    /** @var OutputInterface */
-    private $output;
+    private TimeLapseInterface $timeLapse;
 
     public function __construct(
-        ProcessManagerInterface $processManager,
+        ManagerInterface $manager,
         RuntimeControlInterface $runtimeControl,
-        TimeLapseInterface $timeLapse,
-        OutputInterface $output
+        TimeLapseInterface $timeLapse
     ) {
-        $this->processManager = $processManager;
+        $this->manager = $manager;
         $this->runtimeControl = $runtimeControl;
         $this->timeLapse = $timeLapse;
-        $this->output = $output;
     }
 
     /**
-     * @throws ProcessRunnerException
+     * @inheritDoc
      */
     public function run(): void
     {
         try {
-            $this->processManager->initialize();
+            $this->manager->initialize();
         } catch (Throwable $exception) {
-            throw new ProcessRunnerException('Failed to initialize process manager', 0, $exception);
+            throw new RunnerException('Failed to initialize process manager', 0, $exception);
         }
 
         while (true) {
             try {
-                $this->processManager->maintain();
+                $this->manager->maintain();
             } catch (Throwable $exception) {
-                $this->output->write((string) $exception);
-                $this->runtimeControl->quit();
+                $this->runtimeControl->quit(new Reason('Failed to maintain processes'));
             }
 
-            if (!$this->processManager->continue()) {
-                $this->processManager->stop();
+            if (!$this->manager->continue()) {
+                $this->manager->stop();
                 break;
             }
 

@@ -5,9 +5,7 @@
     "license": "MIT",
     "keywords": [
         "process",
-        "manager",
-        "multiple",
-        "multiply"
+        "manager"
     ],
     "authors": [
         {
@@ -15,15 +13,18 @@
             "email": "frank@qlimix.net"
         }
     ],
+    "require": {
+        "php": "^7.4",
+        "qlimix/process": "v2.x-dev",
+        "qlimix/time": "^1.0"
+    },
+    "require-dev": {
+        "qlimix/code-standard": "^2.0"
+    },
     "autoload": {
         "psr-4": {
             "Qlimix\\Process\\": "src/"
         }
-    },
-    "require": {
-        "php": ">=7.2",
-        "qlimix/process": "^1.0",
-        "qlimix/time": "^1.0"
     },
     "autoload-dev": {
         "psr-4": {
@@ -32,8 +33,5 @@
     },
     "config": {
         "sort-packages": true
-    },
-    "require-dev": {
-        "qlimix/code-standard": "^1.0"
     }
 }

@@ -2,32 +2,29 @@
 
 namespace Qlimix\Process\Multiply;
 
-use Qlimix\Process\ProcessControlInterface;
-use Qlimix\Process\ProcessInterface;
-use Qlimix\Process\Registry\RegistryInterface;
+use Qlimix\Process\Control\ControlInterface;
+use Qlimix\Process\Multiply\Exception\SpawnException;
+use Qlimix\Process\Runtime\Registry\RegistryInterface;
+use Throwable;
 
 final class Spawn implements SpawnInterface
 {
-    /** @var ProcessInterface */
-    private $process;
+    private string $process;
 
-    /** @var ProcessControlInterface */
-    private $processControl;
+    private ControlInterface $control;
 
-    /** @var RegistryInterface */
-    private $registry;
+    private RegistryInterface $registry;
 
-    /** @var int */
-    private $maxProcesses;
+    private int $maxProcesses;
 
     public function __construct(
-        ProcessInterface $process,
-        ProcessControlInterface $processControl,
+        string $process,
+        ControlInterface $control,
         RegistryInterface $registry,
         int $maxProcesses
     ) {
         $this->process = $process;
-        $this->processControl = $processControl;
+        $this->control = $control;
         $this->registry = $registry;
         $this->maxProcesses = $maxProcesses;
     }
@@ -37,10 +34,18 @@ final class Spawn implements SpawnInterface
      */
     public function spawn(): void
     {
-        if ($this->maxProcesses === $this->registry->count()) {
+        $count = $this->registry->count();
+        if ($this->maxProcesses === $count) {
             return;
         }
 
-        $this->processControl->startProcess($this->process);
+        try {
+            $toSpawn = $this->maxProcesses - $count;
+            for ($i = 0; $i < $toSpawn; $i++) {
+                $this->control->start($this->process);
+            }
+        } catch (Throwable $exception) {
+            throw new SpawnException('Couldn\'t start process', 0, $exception);
+        }
     }
 }

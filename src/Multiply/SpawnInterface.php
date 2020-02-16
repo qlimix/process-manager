@@ -2,12 +2,12 @@
 
 namespace Qlimix\Process\Multiply;
 
-use Qlimix\Process\Exception\ProcessException;
+use Qlimix\Process\Multiply\Exception\SpawnException;
 
 interface SpawnInterface
 {
     /**
-     * @throws ProcessException
+     * @throws SpawnException
      */
     public function spawn(): void;
 }
