@@ -1,9 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace Qlimix\Process\Multiply;
+namespace Qlimix\Process\Manager\Multiply;
 
 use Qlimix\Process\Control\ControlInterface;
-use Qlimix\Process\Multiply\Exception\SpawnException;
+use Qlimix\Process\Manager\Multiply\Exception\SpawnException;
 use Qlimix\Process\Runtime\Registry\RegistryInterface;
 use Throwable;
 

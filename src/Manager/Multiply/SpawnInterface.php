@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace Qlimix\Process\Multiply;
+namespace Qlimix\Process\Manager\Multiply;
 
-use Qlimix\Process\Multiply\Exception\SpawnException;
+use Qlimix\Process\Manager\Multiply\Exception\SpawnException;
 
 interface SpawnInterface
 {

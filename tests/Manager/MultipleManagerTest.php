@@ -8,7 +8,7 @@ use Qlimix\Process\Control\ControlInterface;
 use Qlimix\Process\Control\Exception\ControlException;
 use Qlimix\Process\Control\Status;
 use Qlimix\Process\Manager\Exception\ManagerException;
-use Qlimix\Process\MultipleManager;
+use Qlimix\Process\Manager\MultipleManager;
 use Qlimix\Process\Runtime\RuntimeControlInterface;
 
 final class MultipleManagerTest extends TestCase

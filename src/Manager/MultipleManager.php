@@ -1,10 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace Qlimix\Process;
+namespace Qlimix\Process\Manager;
 
 use Qlimix\Process\Control\ControlInterface;
 use Qlimix\Process\Manager\Exception\ManagerException;
-use Qlimix\Process\Manager\ManagerInterface;
 use Qlimix\Process\Runtime\Reason;
 use Qlimix\Process\Runtime\RuntimeControlInterface;
 use Throwable;

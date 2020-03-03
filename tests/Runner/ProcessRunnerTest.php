@@ -1,11 +1,11 @@
 <?php declare(strict_types=1);
 
-namespace Qlimix\Tests\Process;
+namespace Qlimix\Tests\Process\Manager;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Qlimix\Process\Manager\ManagerInterface;
-use Qlimix\Process\ProcessRunner;
+use Qlimix\Process\Runner\ProcessRunner;
 use Qlimix\Process\Runner\Exception\RunnerException;
 use Qlimix\Process\Runtime\RuntimeControlInterface;
 use Qlimix\Time\TimeLapseInterface;

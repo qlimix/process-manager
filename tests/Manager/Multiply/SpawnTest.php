@@ -6,8 +6,8 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Qlimix\Process\Control\ControlInterface;
 use Qlimix\Process\Control\Exception\ControlException;
-use Qlimix\Process\Multiply\Exception\SpawnException;
-use Qlimix\Process\Multiply\Spawn;
+use Qlimix\Process\Manager\Multiply\Exception\SpawnException;
+use Qlimix\Process\Manager\Multiply\Spawn;
 use Qlimix\Process\Runtime\Registry\RegistryInterface;
 
 final class SpawnTest extends TestCase

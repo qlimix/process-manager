@@ -1,10 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace Qlimix\Process;
+namespace Qlimix\Process\Runner;
 
 use Qlimix\Process\Manager\ManagerInterface;
 use Qlimix\Process\Runner\Exception\RunnerException;
-use Qlimix\Process\Runner\RunnerInterface;
 use Qlimix\Process\Runtime\Reason;
 use Qlimix\Process\Runtime\RuntimeControlInterface;
 use Qlimix\Time\TimeLapseInterface;

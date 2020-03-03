@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Qlimix\Process\Multiply\Exception;
+namespace Qlimix\Process\Manager\Multiply\Exception;
 
 use Exception;
 

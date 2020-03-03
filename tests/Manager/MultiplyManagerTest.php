@@ -8,9 +8,9 @@ use Qlimix\Process\Control\ControlInterface;
 use Qlimix\Process\Control\Exception\ControlException;
 use Qlimix\Process\Control\Status;
 use Qlimix\Process\Manager\Exception\ManagerException;
-use Qlimix\Process\Multiply\Exception\SpawnException;
-use Qlimix\Process\Multiply\SpawnInterface;
-use Qlimix\Process\MultiplyManager;
+use Qlimix\Process\Manager\Multiply\Exception\SpawnException;
+use Qlimix\Process\Manager\Multiply\SpawnInterface;
+use Qlimix\Process\Manager\MultiplyManager;
 use Qlimix\Process\Runtime\RuntimeControlInterface;
 
 final class MultiplyManagerTest extends TestCase
