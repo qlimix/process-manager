@@ -14,12 +14,12 @@
         }
     ],
     "require": {
-        "php": "^7.4",
-        "qlimix/process": "v2.x-dev",
-        "qlimix/time": "^1.0"
+        "php": ">7.4",
+        "qlimix/process": "^2.0",
+        "qlimix/time": "^2.0"
     },
     "require-dev": {
-        "qlimix/code-standard": "^2.0"
+        "qlimix/code-standard": "^3.0"
     },
     "autoload": {
         "psr-4": {
