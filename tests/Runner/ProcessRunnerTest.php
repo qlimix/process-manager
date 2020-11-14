@@ -1,45 +1,35 @@
 <?php declare(strict_types=1);
 
-namespace Qlimix\Tests\Process;
+namespace Qlimix\Tests\Process\Manager;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Qlimix\Process\Exception\ProcessRunnerException;
-use Qlimix\Process\Output\OutputInterface;
-use Qlimix\Process\ProcessManagerInterface;
-use Qlimix\Process\ProcessRunner;
+use Qlimix\Process\Manager\ManagerInterface;
+use Qlimix\Process\Runner\ProcessRunner;
+use Qlimix\Process\Runner\Exception\RunnerException;
 use Qlimix\Process\Runtime\RuntimeControlInterface;
 use Qlimix\Time\TimeLapseInterface;
 
 final class ProcessRunnerTest extends TestCase
 {
-    /** @var MockObject */
-    private $processManager;
+    private MockObject $processManager;
 
-    /** @var MockObject */
-    private $runtimeControl;
+    private MockObject$runtimeControl;
 
-    /** @var MockObject */
-    private $timeLapse;
+    private MockObject $timeLapse;
 
-    /** @var MockObject */
-    private $output;
-
-    /** @var ProcessRunner */
-    private $processRunner;
+    private ProcessRunner $processRunner;
 
     public function setUp(): void
     {
-        $this->processManager = $this->createMock(ProcessManagerInterface::class);
+        $this->processManager = $this->createMock(ManagerInterface::class);
         $this->runtimeControl = $this->createMock(RuntimeControlInterface::class);
         $this->timeLapse = $this->createMock(TimeLapseInterface::class);
-        $this->output = $this->createMock(OutputInterface::class);
 
         $this->processRunner = new ProcessRunner(
             $this->processManager,
             $this->runtimeControl,
-            $this->timeLapse,
-            $this->output
+            $this->timeLapse
         );
     }
 
@@ -74,9 +64,9 @@ final class ProcessRunnerTest extends TestCase
     {
         $this->processManager->expects($this->once())
             ->method('initialize')
-            ->willThrowException(new ProcessRunnerException());
+            ->willThrowException(new RunnerException());
 
-        $this->expectException(ProcessRunnerException::class);
+        $this->expectException(RunnerException::class);
 
         $this->processRunner->run();
     }
@@ -91,10 +81,7 @@ final class ProcessRunnerTest extends TestCase
 
         $this->processManager->expects($this->once())
             ->method('maintain')
-            ->willThrowException(new ProcessRunnerException());
-
-        $this->output->expects($this->once())
-            ->method('write');
+            ->willThrowException(new RunnerException());
 
         $this->runtimeControl->expects($this->once())
             ->method('quit');
