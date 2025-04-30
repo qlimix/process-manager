@@ -10,24 +10,14 @@ use Throwable;
 
 final class MultipleManager implements ManagerInterface
 {
-    /** @var string[] */
-    private array $processes;
-
-    private ControlInterface $control;
-
-    private RuntimeControlInterface $runtimeControl;
-
     /**
      * @param string[] $processes
      */
     public function __construct(
-        array $processes,
-        ControlInterface $control,
-        RuntimeControlInterface $runtimeControl
+        private array $processes,
+        private ControlInterface $control,
+        private RuntimeControlInterface $runtimeControl
     ) {
-        $this->processes = $processes;
-        $this->control = $control;
-        $this->runtimeControl = $runtimeControl;
     }
 
     /**
@@ -57,26 +47,25 @@ final class MultipleManager implements ManagerInterface
             return;
         }
 
-        if (!$exit->isSuccess()) {
-            $this->runtimeControl->quit(new Reason('Process '.$exit->getProcess().' failed'));
+        if (!$exit->success) {
+            $this->runtimeControl->quit(new Reason('Process '.$exit->process.' failed'));
         }
 
         try {
-            $this->control->start($exit->getProcess());
+            $this->control->start($exit->process);
         } catch (Throwable $exception) {
-            throw new ManagerException('Failed to restart,'.$exit->getProcess().' , process', 0, $exception);
+            throw new ManagerException('Failed to restart,'.$exit->process.' , process', 0, $exception);
         }
     }
 
     /**
      * @inheritDoc
-     * @SuppressWarnings(PHPMD.EmptyCatchBlock)
      */
     public function stop(): void
     {
         try {
             $this->control->stopAll();
-        } catch (Throwable $exception) {
+        } catch (Throwable) {
         }
     }
 

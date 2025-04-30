@@ -11,20 +11,11 @@ use Throwable;
 
 final class MultiplyManager implements ManagerInterface
 {
-    private ControlInterface $control;
-
-    private RuntimeControlInterface $runtimeControl;
-
-    private SpawnInterface $spawn;
-
     public function __construct(
-        ControlInterface $control,
-        RuntimeControlInterface $runtimeControl,
-        SpawnInterface $spawn
+        private ControlInterface $control,
+        private RuntimeControlInterface $runtimeControl,
+        private SpawnInterface $spawn
     ) {
-        $this->control = $control;
-        $this->runtimeControl = $runtimeControl;
-        $this->spawn = $spawn;
     }
 
     /**
@@ -54,26 +45,25 @@ final class MultiplyManager implements ManagerInterface
             return;
         }
 
-        if (!$exit->isSuccess()) {
-            $this->runtimeControl->quit(new Reason('Process '.$exit->getProcess().' failed'));
+        if (!$exit->success) {
+            $this->runtimeControl->quit(new Reason('Process '.$exit->process.' failed'));
         }
 
         try {
             $this->spawn->spawn();
         } catch (Throwable $exception) {
-            throw new ManagerException('Failed to spawn,'.$exit->getProcess().' , process', 0, $exception);
+            throw new ManagerException('Failed to spawn,'.$exit->process.' , process', 0, $exception);
         }
     }
 
     /**
      * @inheritDoc
-     * @SuppressWarnings(PHPMD.EmptyCatchBlock)
      */
     public function stop(): void
     {
         try {
             $this->control->stopAll();
-        } catch (Throwable $exception) {
+        } catch (Throwable) {
         }
     }
 

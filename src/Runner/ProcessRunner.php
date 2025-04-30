@@ -11,20 +11,11 @@ use Throwable;
 
 final class ProcessRunner implements RunnerInterface
 {
-    private ManagerInterface $manager;
-
-    private RuntimeControlInterface $runtimeControl;
-
-    private TimeLapseInterface $timeLapse;
-
     public function __construct(
-        ManagerInterface $manager,
-        RuntimeControlInterface $runtimeControl,
-        TimeLapseInterface $timeLapse
+        private ManagerInterface $manager,
+        private RuntimeControlInterface $runtimeControl,
+        private TimeLapseInterface $timeLapse
     ) {
-        $this->manager = $manager;
-        $this->runtimeControl = $runtimeControl;
-        $this->timeLapse = $timeLapse;
     }
 
     /**
@@ -42,7 +33,7 @@ final class ProcessRunner implements RunnerInterface
             try {
                 $this->manager->maintain();
             } catch (Throwable $exception) {
-                $this->runtimeControl->quit(new Reason('Failed to maintain processes'));
+                $this->runtimeControl->quit(Reason::fromException($exception));
             }
 
             if (!$this->manager->continue()) {

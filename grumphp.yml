@@ -27,3 +27,4 @@ grumphp:
       threads: 1
       triggered_by: ['php']
       show_info: false
+    phpunit:

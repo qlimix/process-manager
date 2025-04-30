@@ -9,24 +9,12 @@ use Throwable;
 
 final class Spawn implements SpawnInterface
 {
-    private string $process;
-
-    private ControlInterface $control;
-
-    private RegistryInterface $registry;
-
-    private int $maxProcesses;
-
     public function __construct(
-        string $process,
-        ControlInterface $control,
-        RegistryInterface $registry,
-        int $maxProcesses
+        private string $process,
+        private ControlInterface $control,
+        private RegistryInterface $registry,
+        private int $maxProcesses
     ) {
-        $this->process = $process;
-        $this->control = $control;
-        $this->registry = $registry;
-        $this->maxProcesses = $maxProcesses;
     }
 
     /**

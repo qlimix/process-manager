@@ -36,7 +36,7 @@ final class ProcessRunnerTest extends TestCase
     /**
      * @test
      */
-    public function shouldRun(): void
+    public function testShouldRun(): void
     {
         $this->processManager->expects($this->once())
             ->method('initialize');
@@ -60,7 +60,7 @@ final class ProcessRunnerTest extends TestCase
     /**
      * @test
      */
-    public function shouldThrowOnInitializeException(): void
+    public function testShouldThrowOnInitializeException(): void
     {
         $this->processManager->expects($this->once())
             ->method('initialize')
@@ -74,7 +74,7 @@ final class ProcessRunnerTest extends TestCase
     /**
      * @test
      */
-    public function shouldThrowOnMaintainException(): void
+    public function testShouldThrowOnMaintainException(): void
     {
         $this->processManager->expects($this->once())
             ->method('initialize');
