@@ -1,5 +1,7 @@
 # process-manager
 
+> **Archived:** this package is no longer maintained.
+
 [![Travis CI](https://api.travis-ci.org/qlimix/process-manager.svg?branch=master)](https://travis-ci.org/qlimix/process-manager)
 [![Coveralls](https://img.shields.io/coveralls/github/qlimix/process-manager.svg)](https://coveralls.io/github/qlimix/process-manager)
 [![Packagist](https://img.shields.io/packagist/v/qlimix/process-manager.svg)](https://packagist.org/packages/qlimix/process-manager)
